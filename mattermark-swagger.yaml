@@ -7,7 +7,7 @@ info:
     email: support@mattermark.com
 
 security:
-  - APIKeyQueryParam: []
+  - APIKeyHeaderParam: []
   
 paths:
   /search:
@@ -1557,10 +1557,10 @@ parameters:
     description: The numbers of items to return per page.    
 
 securityDefinitions:
-   APIKeyQueryParam:
+   APIKeyHeaderParam:
      type: apiKey
-     in: query
-     name: key
+     in: header
+     name: Authorization
      
 host: api.mattermark.com
 schemes:
