@@ -503,7 +503,7 @@ paths:
         - Complex Queries
       summary: Perform a complex investor query
       operationId: query_investors
-      description: Returns a list of investors matching the MSFL query. The Mattermark Semantic Filter Language allows you to perform a complex query in a single request.
+      description: Returns a list of investors matching the MSFL query. The [Mattermark Semantic Filter Language](/docs/mattermark-semantic-filter-language) allows you to perform a complex query in a single request.
       consumes:
       - application/json
       produces:
