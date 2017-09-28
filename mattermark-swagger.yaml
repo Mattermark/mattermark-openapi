@@ -1,0 +1,1567 @@
+swagger: '2.0'
+info:
+  description: Mattermark REST API
+  version: 1.0.0
+  title: Mattermark REST API
+  contact:
+    email: support@mattermark.com
+
+security:
+  - APIKeyQueryParam: []
+  
+paths:
+  /search:
+    get:
+      tags:
+      - Search
+      summary: Search for companies or investors
+      operationId: search
+      description: The search endpoint can be used to query for a company or investor based on a keyword you define, and is also useful to provide autocompletion for common queries, such as by company name or domain.
+      produces:
+      - application/json
+      parameters:
+      - in: query
+        name: term
+        description: The term to query by
+        type: string
+      - in: query
+        name: object_types
+        description: Limits the type of object to return to one of either companies or investors
+        type: string
+        enum: [company, investor]
+      responses:
+        200:
+          description: search results matching criteria
+          examples:
+            application/json:
+              [
+                {
+                    "object_type": "company",
+                    "object_name": "Lyft",
+                    "object_slug": "117766/lyft",
+                    "company_domain": "lyft.com",
+                    "company_funding": 2637500000,
+                    "company_keywords": null,
+                    "company_mattermark_score": 118,
+                    "investor_funding": 0,
+                    "object_id": 117766
+                }
+              ]
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SearchItem'
+        400:
+          description: bad input parameter
+  /companies:
+    get:
+      tags:
+      - Companies
+      summary: Retrieve a list of companies
+      operationId: get_companies
+      description: The company list allows you to retrieve all companies, or a list of companies filtered by one or many parameters. For parameters marked as arrays, you can “OR” together different options with the pipe `|` operator. 
+      produces:
+      - application/json
+      parameters:
+      - in: query
+        name: domain
+        description: The domain of the company’s website.
+        type: string
+      - in: query
+        name: company_name
+        description: The company’s name.
+        type: string
+      - in: query
+        name: added_date
+        description: The date the company started being tracked by Mattermark. Supports a range operation by using the `~` character on either side of a single date value or between two values
+        type: string
+        format: date_range
+      - in: query
+        name: mattermark_score
+        description: The current Mattermark score of the company.
+        type: integer
+        format: numeric_range
+      - in: query
+        name: momentum_score
+        description: The latest weekly momentum score of the company.
+        type: integer
+        format: numeric_range
+      - in: query
+        name: employees
+        description: The number of employees currently at the company.
+        type: integer
+        format: numeric_range
+      - in: query
+        name: employees_month_ago
+        description: Count of employees one month ago.
+        type: integer
+        format: numeric_range
+      - in: query
+        name: employees_added_in_month
+        description: Count of employees added this month.
+        type: integer
+        format: numeric_range
+      - in: query
+        name: employees_mom
+        description: The percent employee growth during that month.
+        type: integer
+        format: numeric_range
+      - in: query
+        name: cached_uniques
+        description: The estimated monthly unique visitors to the company’s website.
+        type: integer
+        format: numeric_range
+      - in: query  
+        name: cached_uniques_week_ago
+        description: The estimated monthly unique visitors to the company’s website during the past 7 days.
+        type: integer
+        format: numeric_range
+      - in: query  
+        name: uniques_wow
+        description: The percent change in the estimated monthly unique visitors to the company’s website in the past 7 days.
+        type: integer
+        format: numeric_range
+      - in: query  
+        name: cached_uniques_month_ago
+        description: The estimated monthly unique visitors to the company’s website during the past month.
+        type: integer
+        format: numeric_range
+      - in: query  
+        name: uniques_mom
+        description: The percent change in the estimated monthly unique visitors to the company’s website in the past month.
+        type: integer
+        format: numeric_range
+      - in: query  
+        name: cached_mobile_downloads
+        description: The estimated monthly mobile downloads from the U.S. iTunes app store.
+        type: integer
+        format: numeric_range
+      - in: query  
+        name: cached_mobile_downloads_week_ago
+        description: The estimated monthly mobile downloads one week ago from the U.S. iTunes app store.
+        type: integer
+        format: numeric_range
+      - in: query
+        name: mobile_downloads_wow
+        description: The change in the estimated monthly mobile downloads from the U.S. iTunes app store during the past week.
+        type: integer
+        format: numeric_range
+      - in: query  
+        name: cached_mobile_downloads_month_ago
+        description: The count of the estimated monthly mobile downloads from the U.S. iTunes app store during the past month.
+        type: integer
+        format: numeric_range
+      - in: query  
+        name: mobile_downloads_mom
+        description: The growth of the estimated monthly mobile downloads from the U.S. iTunes app store during the past month.
+        type: integer
+        format: numeric_range
+      - in: query  
+        name: est_founding_date
+        description: The estimated founding date of the company.
+        type: array
+        items:
+            type: string
+            enum: [within 3 months, within 6 months, within 9 months, within 1 year, within 2 years, within 3 years, within 5 years, within 10 years]
+        collectionFormat: pipes
+      - in: query  
+        name: stage
+        description: The most recent funding round for the company.
+        type: array
+        items:
+            type: string
+            enum: [Unknown, No Known Funding, Pre Series A, a, b, c, d, e, f, g, h, i, Late, Exited]
+        collectionFormat: pipes
+      - in: query  
+        name: investors
+        description: In order to filter a list of companies by investor, you'll need the `mm_slug` value for the specific investor(s). You can get the mm_slug value for any investor in our index by using the Investors endpoint.
+        type: string
+      - in: query  
+        name: total_funding
+        description: The total publicly reported money raised by the company. Only includes money raised in U.S. Dollars. Other currencies are returned in detail response, but not included in this total.
+        type: integer
+        format: numeric_range
+      - in: query  
+        name: last_funding_date
+        description: Date of last funding event.
+        type: array
+        items:
+            type: string
+            enum: [not in past 3 months, not in past 6 months, not in past 9 months, not in past year, not in past 13 months, not in past 16 months, not in past 18 months, not in past 2 years, never raised, raised in past 3 months, raised in past 6 months, raised in past 9 months, raised in past year, raised in past 2 years, has ever raised]
+      - in: query  
+        name: last_funding_amount
+        description: The amount of funding investment in the the most recent funding event
+        type: integer
+        format: numeric_range
+      - in: query  
+        name: location
+        description: A pipe-delimited list of locations. This could be something like `Bay Area` or `San Francisco`
+        type: array
+        items:
+            type: string
+        collectionFormat: pipes
+      - in: query  
+        name: state
+        description: State (location in the US) of the company’s headquarters.
+        type: array
+        items:
+            type: string
+        collectionFormat: pipes
+      - in: query  
+        name: has_google_play
+        description: Companies that have a Google Play application.
+        type: string
+        enum: [0,1]
+      - in: query  
+        name: has_itunes
+        description: Companies that have an iTunes application.
+        type: string
+        enum: [0,1]
+      - in: query  
+        name: play_category
+        description: The Google Play store categories of applications associated with the company
+        type: array
+        items:
+            type: string
+        collectionFormat: pipes
+      - in: query  
+        name: itunes_category
+        description: The iTunes store categories of applications associated with the company
+        type: array
+        items:
+            type: string
+        collectionFormat: pipes
+      - in: query  
+        name: business_models
+        description: The business models employed by the company to generate revenue.
+        type: array
+        items:
+            type: string
+        collectionFormat: pipes
+      - in: query  
+        name: industries
+        description: The industries the company operates within.
+        type: array
+        items:
+            type: string
+        collectionFormat: pipes
+      - in: query  
+        name: keywords
+        description: Keywords associated with the company.
+        type: array
+        items:
+            type: string
+        collectionFormat: pipes
+      - $ref: '#/parameters/pageParam'
+      - $ref: '#/parameters/limitParam'
+        
+        
+      responses:
+        200:
+          description: A company object
+          examples:
+            application/json:
+              {
+                  "meta": {
+                      "total_record_count": 1,
+                      "total_pages": 1,
+                      "current_page": 1,
+                      "per_page": 10
+                  },
+                  "companies": [
+                      {
+                          "company_name": "Blue Smoke LLC",
+                          "domain": "bluesmokellc.net",
+                          "id": "10808576",
+                          "url": "https://api.mattermark.com/companies/10808576"
+                      }
+                  ]
+              }
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/companies'
+        400:
+          description: bad input parameter
+  /companies/{id}:
+    get:
+      tags:
+        - Companies
+      summary: Retrieve a specific company
+      operationId: get_company
+      description: The company list allows you to retrieve all companies, or a list of companies filtered by one or many parameters. For parameters marked as arrays, you can “OR” together different options with the pipe `|` operator. 
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: id
+        description: The ID of the company to retrieve
+        type: string    
+        required: true
+      responses:
+        200:
+          description: A company object
+          schema:
+            $ref: '#/definitions/CompanyItem'
+  /companies/{id}/stories:
+    get:
+      tags:
+        - Companies
+      summary: Retrieve company news articles
+      operationId: get_company_stories
+      description: The company stories endpoint retrieves the 50 latest news articles about the specified company 
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: id
+        description: The ID of the company to retrieve news for
+        type: string    
+        required: true
+      responses:
+        200:
+          description: A story object
+          schema:
+            $ref: '#/definitions/CompanyStory'  
+  /companies/{id}/similar:
+    get:
+      tags:
+        - Companies
+      summary: Retrieve similar companies
+      operationId: get_similar_companies
+      description: The similar companies endpoint returns up to 20 of the most similar companies ordered related to the specified company. 
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: id
+        description: The ID of the company to retrieve similar companies for
+        type: string    
+        required: true
+      responses:
+        200:
+          description: A similar company object
+          schema:
+            $ref: '#/definitions/SimilarCompany'
+  /companies/{id}/people:
+    get:
+      tags:
+        - Companies
+      summary: Retrieve company employees
+      operationId: get_company_personnel
+      description: This endpoint allows you to retrieve key personnel for a specific company in our database.
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: id
+        description: The ID of the company to retrieve personnel for
+        type: string    
+        required: true
+      responses:
+        200:
+          description: A company personnel object
+          schema:
+            $ref: '#/definitions/PeopleItem'
+  /companies/{id}/contact:
+    get:
+      tags:
+        - Companies
+      summary: Retrieve employee contact information
+      operationId: get_personnel_contact
+      description: This endpoint allows you to retrieve contact information for a specific person at a company
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: id
+        description: The ID of the company to retrieve personnel for
+        type: string    
+        required: true
+      - in: query
+        name: full_name
+        description: The full name of the individual to find contact information for
+        type: string
+        required: true
+      responses:
+        200:
+          description: A contact object
+          schema:
+            $ref: '#/definitions/ContactItem'          
+  /fundings:
+    get:
+      tags:
+      - Funding Events
+      summary: Retrieve a list of funding events
+      operationId: searchFunding
+      description: Retrieve a list of funding events for a specific query
+      produces:
+      - application/json
+      parameters:
+      - in: query
+        name: amount
+        description: money reported raised in the funding round
+        required: false
+        type: integer
+        format: int64 
+      - in: query
+        name: city
+        description: pipe separated list of city names
+        type: string
+        format: list
+      - in: query
+        name: country
+        description: list of three character country codes
+        type: string  
+        format: list
+      - in: query
+        name: funding_date_range
+        description: range of funding dates
+        type: string
+        format: date
+      - in: query
+        name: investor_ids
+        description: list of investor ids
+        type: array
+        items:
+            type: string
+        collectionFormat: pipes
+      - in: query
+        name: investor_slugs
+        description: list of investor slugs, see Investors to get a list of all investors.
+        type: array
+        items:
+            type: string
+        collectionFormat: pipes
+      - in: query
+        name: series
+        description: list of series
+        type: array
+        items:
+            type: string
+            enum: [a,b,c,d,e,f,g,h,i,angel,seed,debt_financing,private_equity,undisclosed]
+        collectionFormat: pipes
+      - $ref: '#/parameters/pageParam'
+      - $ref: '#/parameters/limitParam'
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            type: object
+            properties:
+              fundings:
+                type: array
+                items:
+                  $ref: '#/definitions/FundingItem'
+              meta:
+                $ref: '#/definitions/Metadata'
+        400:
+          description: bad input parameter
+  /investors/{id}:
+    get:
+      tags:
+        - Investors
+      summary: Retrieve a specific investor
+      operationId: get_investor
+      description: Returns details for a specific investor. Information includes the size of their portfolio and some stats around their portfolio and funding deals.
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: id
+        description: The ID of the investor to retrieve
+        type: string    
+        required: true
+      responses:
+        200:
+          description: An investor object
+          schema:
+            $ref: '#/definitions/InvestorItem'  
+  /investors/{id}/portfolio:
+    get:
+      tags:
+        - Investors
+      summary: Retrieve an investor's portfolio companies
+      operationId: get_investor_portfolio
+      description: Returns a list of portfolio companies for a specific investor.
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: id
+        description: The ID of the investor to retrieve
+        type: string    
+        required: true
+      responses:
+        200:
+          description: An investor company object
+          schema:
+            $ref: '#/definitions/InvestorCompanies'
+  /queries:
+    post:
+      tags:
+        - Complex Queries
+      summary: Perform a complex investor query
+      operationId: query_investors
+      description: Returns a list of investors matching the MSFL query. The Mattermark Semantic Filter Language allows you to perform a complex query in a single request.
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: query
+        description: The query to perform.
+        schema:
+          type: object
+          required:
+            - dataset
+          properties:
+            dataset:
+              type: string
+              example: investors
+              enum: [investors]
+            filter:
+              type: object
+            sort:
+              type: object
+            per_page:
+              type: integer
+              example: 50
+            page:
+              type: integer
+              example: 1
+      responses:
+        200:
+          description: An investor company object
+  /ratelimit/quota:
+    get:
+      tags:
+        - Utilities
+      summary: Check remaining quota
+      operationId: quota
+      description: Returns a count of how many API requests you have left in the current period.
+      produces:
+      - application/json
+      responses:
+        200:
+          description: A quota object     
+          schema:
+            type: object
+            properties:
+              quota_limit:
+                type: integer
+                example: 100
+              quota_remaining:
+                type: integer
+                example: 99
+              quota_reset:
+                type: integer
+                example: 1498694400
+              quota_period:
+                type: integer
+                example: 1498694400  
+definitions:
+  companies:
+    type: object
+    required:
+    - id
+    - company_name
+    - url
+    - domain
+    properties:
+      id:
+        type: string
+        format: uuid
+        example: 10808576
+      company_name:
+        type: string
+        example: Blue Smoke LLC
+      domain:
+        type: string
+        example: bluesmokellc.net
+      url:
+        type: string
+        example: https://api.mattermark.com/companies/10808576
+  InvestorCompanies:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+        example: 10808576
+      company_name:
+        type: string
+        example: Blue Smoke LLC
+      domain:
+        type: string
+        example: bluesmokellc.net
+      stage:
+        type: string
+        example: a
+      loction:
+        type: string
+        example: 'bay area'
+      last_funding_date:
+        type: string
+        format: date
+        example: '2016-01-01'
+      total_funding:
+        type: integer
+        example: 1000000
+      investor_first_invested_on:
+        type: string
+        format: date
+        example: '2016-01-01'
+  SearchItem:
+    type: object
+    required:
+    - object_type
+    - object_name
+    - company_funding
+    - object_slug
+    - company_domain
+    - company_keywords
+    - company_mattermark_score
+    - investor_funding
+    - object_id
+    properties:
+      object_type:
+        type: string
+        format: uuid
+        example: company
+      object_name:
+        type: string
+        example: Lyft
+      company_funding:
+        type: integer
+        format: int64
+        example: 1392500000
+      object_slug:
+        type: string
+        example: 117766/lyft
+      company_domain:
+        type: string
+        example: lyft.com
+      company_keywords:
+        type: string
+        example: nil
+      company_mattermark_score:
+        type: integer
+        format: int64
+        example: 947
+      investor_funding:
+        type: integer
+        format: int64
+        example: 0
+      object_id:
+        type: integer
+        format: int64
+        example: 117766
+  CompanyItem:
+    type: object
+    required:
+    - id
+    - name
+    properties:
+      name:
+        type: string
+        example: Glide
+      id:
+        type: integer
+        format: int64
+        example: 10533813
+      description:
+        type: string
+        example: Founded in May 2012, Glide is the world's only instant video messaging app.
+      website:
+        type: string
+        example: glide.com
+      mattermark_score:
+        type: integer
+        format: int64
+        example:  241
+      employees:
+        type: integer
+        format: int64
+        example:  71
+      employees_month_ago:
+        type: integer
+        format: int64
+        example:  68
+      employees_6_months_ago:
+        type: integer
+        format: int64
+        example:  32
+      website_uniques:
+        type: integer
+        format: int64
+        example:  13568
+      mobile_downloads:
+        type: integer
+        format: int64
+        example:  5281
+      stage:
+        type: string
+        example:  b
+      total_funding:
+        type: integer
+        format: int64
+        example:  20000000
+      last_funding_amount:
+        type: integer
+        format: int64
+        example:  20000000
+      last_funding_date:
+        type: string
+        format: date
+        example: '2013-03-21'
+      location:
+        type: string
+        example: Seattle
+      city:
+        type: string
+        example: Seattle
+      state:
+        type: string
+        example: WA
+      zip:
+        type: string
+        example: 98155
+      country:
+        type: string
+        example: USA
+      twitter_handle:
+        type: string
+        example: GlideApp
+      facebook_handle:
+        type: string
+        example: glideme
+      linkedin_id:
+        type: integer
+        format: int64
+        example: 3020582
+      added_date:
+        type: string
+        format: date
+        example: '2013-04-04 15:57:52'
+      revenue_range:
+        type: string
+        example: $5M - $10M
+      itunes_apps:
+        type:  array
+        items:
+          $ref: '#/definitions/ItunesApps'
+      google_play_apps:
+        type:  array
+        items:
+          $ref: '#/definitions/GooglePlayApps'
+      funding:
+        type:  array
+        items:
+          $ref: '#/definitions/Funding'
+      acquired_by:
+        type:  array
+        items:
+          $ref: '#/definitions/Acquired_By'
+      acquired_companies:
+        type:  array
+        items:
+          $ref: '#/definitions/Acquired_Companies'
+      est_founding_date:
+        type: string
+        example: '1999-01-01'
+      business_models:
+        type: string
+        example: [B2B]
+      industries:
+        type: string
+        example: [ data storage,
+                 enterprise software,
+                 hardware, 
+                 information security,
+                 network / hosting / infrastructure,
+                 security,
+                 storage]
+                 
+      stories:
+        type: array
+        items:
+          $ref: '#/definitions/Stories'
+      growth_scores:
+        type: array
+        items:
+          $ref: '#/definitions/GrowthSource'
+      mindshare_scores:
+        type: array
+        items:
+          $ref: '#/definitions/MindshareScores' 
+      employee_count:
+        type: array
+        items:
+          $ref: '#/definitions/EmployeeCount'
+      alexa_rank:
+        type: array
+        items:
+          $ref: '#/definitions/AlexaRank'
+      facebook_talking_count:
+        type: array
+        items:
+          $ref: '#/definitions/FacebookTalkingCount'
+      facebook_like_count:
+        type: array
+        items:
+          $ref: '#/definitions/FacebookLikeCount'
+      twitter_follower_count:
+        type: array
+        items:
+          $ref: '#/definitions/TwitterFollowerCount'
+      twitter_mentions:
+        type: string
+        example: []
+        
+      linkedin_follower_count:
+        type: array
+        items:
+          $ref: '#/definitions/LinkedinFollowerCount'
+      itunes_usa_weekly_downloads:
+        type: array
+        items:
+          $ref: '#/definitions/ItunesUSAWeeklyDownloads'
+      inbound_links:
+        type: array
+        items:
+          $ref: '#/definitions/InboundLinks'
+      est_monthly_uniques:
+        type: array
+        items:
+          $ref: '#/definitions/EstMonthlyUniques'
+
+  ItunesApps:
+    type: object
+    properties:
+      developer_url:
+        type: string
+        format: url
+        example: http:\/\/www.glide.me\/
+      itunes_id:
+        type: integer
+        example: 588199307
+      itunes_url:
+        type: string
+        format: url
+        example: https:\/\/itunes.apple.com\/us\/app\/glide­video­texting\/id588199307?mt=8&uo=2
+      app_name:
+        type: string
+        example: Glide  Video Texting
+
+  GooglePlayApps:
+    type: object
+    required:
+    - id
+    - app_name
+    - package_id
+    - company_id
+    - company_name
+    - company_domain
+    - play_url
+    properties:
+      id:
+        type: integer
+        example: 319510
+      app_name:
+        type: string
+        format: Glide - Video Chat Messenger
+      package_id:
+        type: string
+        example: com.glidetalk.glideapp
+      company_id:
+        type: integer
+        format: int64
+        example: 113022
+      company_name:
+        type: string
+        example: Glide
+      company_domain:
+        type: string
+        example: glide.me
+      play_url:
+        type: string
+        format: url
+        example: http://play.google.com/store/apps/details?id=com.glidetalk.glideapp
+      
+  Funding:
+    type: object
+    required:
+    - amount
+    - currency
+    - series
+    - funding_date
+    - news_url
+    - source
+    - investor_ids
+    - investors
+    properties:
+      amount:
+        type: integer
+        example: 0
+      currency:
+        type: string
+        example: USD
+      series:
+        type: string
+        example: speed
+      funding_date:
+        type: string
+        format: date
+        example: '2013-03-21'
+      news_url:
+        type: string
+        format: url
+        example: http:\/\/www.finsmes.com\/2013\/03\/glide­raises­seven­figure­sum.html
+      source:
+        type: string
+        example: derived
+      investor_ids:
+        type: array
+        items:
+          type: string
+        example: [1234]
+      investors:
+        type: string
+        example: Orey Gilliam,Philippe Schwartz
+  Acquired_By:
+    type: object
+    required: 
+    - event_id
+    - closed_date
+    - company_id
+    - company_name
+    - company_domain
+    properties:
+      event_id:
+        type: integer
+        format: int64
+        example: 15
+      closed_date:
+        type: string
+        example: '2012-12-20'
+      company_id:
+        type: integer
+        format: int64
+        example: 1255
+      company_name:
+        type: string
+        example: Oracle Corporation
+      company_domain:
+        type: string
+        format: url
+        example: oracle.com
+  Acquired_Companies:
+    type: object
+    required: 
+    - event_id
+    - closed_date
+    - company_id
+    - company_name
+    - company_domain
+    properties:
+      event_id:
+        type: integer
+        format: int64
+        example: 10957519
+      closed_date:
+        type: string
+        example: '2017-04-20'
+      company_id:
+        type: integer
+        format: int64
+        example: 61444
+      company_name:
+        type: string
+        example: Moat
+      company_domain:
+        type: string
+        example: moat.com
+  Stories:
+    type: object
+    properties:
+      title:
+        type: string
+        example: Israeli Glide introduces fast capture video and chat for Apple Watch
+      url:
+        type: string
+        example: http://www.geektime.com/2016/11/13/israeli-glide-introduces-fast-capture-video-and-chat-for-apple-watch/
+      date:
+        type: string
+        example: Nov 13 2016
+      source:
+        type: string
+        example: Geek Time
+  GrowthSource:
+    type: object
+    properties:
+      recorded_at:
+        type: string
+        example: 2014-08-09 00:00:00 UTC
+      score:
+        type: string
+        example: 210
+  MindshareScores:
+    type: object
+    properties:
+      recorded_at:
+        type: string
+        example: 2014-08-09 00:00:00 UTC
+      score:
+        type: string
+        example: 210
+  EmployeeCount:
+    type: object
+    properties:
+      recorded_at:
+        type: string
+        example: 2014-08-09 00:00:00 UTC
+      score:
+        type: string
+        example: 16
+  AlexaRank:
+    type: object
+    properties:
+      recorded_at:
+        type: string
+        example: 2014-08-09 00:00:00 UTC
+      score:
+        type: string
+        example: 126653
+  FacebookTalkingCount:
+    type: object
+    properties:
+      recorded_at:
+        type: string
+        example: 2014-08-09 00:00:00 UTC
+      score:
+        type: string
+        example: 3894
+  FacebookLikeCount:
+    type: object
+    properties:
+      recorded_at:
+        type: string
+        example: 2014-08-09 00:00:00 UTC
+      score:
+        type: string
+        example: 168940
+  TwitterFollowerCount:
+    type: object
+    properties:
+      recorded_at:
+        type: string
+        example: 2014-08-09 00:00:00 UTC
+      score:
+        type: string
+        example: 10388
+  LinkedinFollowerCount:
+    type: object
+    properties:
+      recorded_at:
+        type: string
+        example: 2014-08-09 00:00:00 UTC
+      score:
+        type: string
+        example: 46
+  ItunesUSAWeeklyDownloads:
+     type: object
+     properties:
+      recorded_at:
+        type: string
+        example: 2014-08-09 00:00:00 UTC
+      score:
+        type: string
+        example: 49745
+  InboundLinks:
+    type: object
+    properties:
+      recorded_at:
+        type: string
+        example: 2014-08-09 00:00:00 UTC
+      score:
+        type: string
+        example: 1025
+  EstMonthlyUniques:
+    type: object
+    properties:
+      recorded_at:
+        type: string
+        example: 2015-10-17 04:31:27 +0000
+      score:
+        type: string
+        example: 21543
+  FundingItem:
+    type: object
+    required:
+    - id
+    - company_id
+    - company_name
+    - investors
+    - investor_slugs
+    - series
+    - rounds_funding_date
+    - amount
+    - currency
+    - news_url
+    - industry
+    - region
+    - city
+    - state
+    - country
+    - funding_id
+    - created_on
+    properties:
+      id:
+        type: integer
+        format: int64
+        example: 2082133
+      company_id:
+        type: integer
+        format: int64
+        example: 20872
+      company_name:
+        type: string
+        example: Netsmart Technologies
+      investors:
+        type: string
+        example: Genstar Capital
+      investor_slugs:
+        type: string
+        example: genstar-capital
+      series:
+        type: string
+        example: debt_financing
+      rounds_funding_date:
+        type: string
+        example: '2015-03-02'
+      amount:
+        type: integer
+        format: int64
+        example: 250000000
+      currency:
+        type: string
+        example: USD
+      news_url:
+        type: string
+        example: http://www.abladvisor.com/news/6534/golub-capital-provides-250mm-facility-to-support-netsmart-recap
+      industry:
+        type: string
+        example: Enterprise Software,Health IT,Healthcare
+      region:
+        type: string
+        example: null
+      city:
+        type: string
+        example: Great River
+      state:
+        type: string
+        example: NY
+      country:
+        type: string
+        example: USA
+      funding_id:
+        type: integer
+        format: int64
+        example: 2082133
+      created_on:
+        type: string
+        example: '2015-03-02 19:59:35'
+  Metadata:
+    type: object
+    properties:
+      total_record_count:
+        type: integer
+        example: 10000
+      total_pages:
+        type: integer
+        example: 1000
+      current_page:
+        type: integer
+        example: 1
+      per_page:
+        type: integer
+        example: 10
+  InvestorItem:
+    type: object
+    required:
+    - id
+    - name
+    properties:
+      id:
+        type: string
+        format: uuid
+        example: 51
+      name:
+        type: string
+        example: Greycroft Partners
+      mm_slug:
+        type: string
+        format: int32
+        example: Greycroft
+      website:
+        type: string
+        example: greycroft.com
+      type:
+        type: string
+        example: vc
+      location:
+        type: string
+        example: New York
+      portfolio_path:
+        type: string
+        example: /app/data?investors=Greycroft
+      portfolio_size:
+        type: string
+        example: 172
+      number_of_deals:
+        type: string
+        example: 244
+      three_year_funds_sold:
+        type: string
+        example: 381160001
+      funding_rounds_path:
+        type: string
+        example: /app/rounds?investors=Greycroft
+      est_most_recent_fund_date:
+        type: string
+        example: '2015-11-30'
+      most_recent_funding:
+        type: object
+        properties:
+          funding_date:
+            type: string
+            example: '2016-02-04'
+          amount:
+            type: string
+            example: 2250000
+          series:
+            type: string
+            example: seed
+          company:
+            type: object
+            properties:
+              id:
+                type: string
+                example: 10579847
+              company_name:
+                type: string
+                example: Hobnob
+          investors:
+            type: array
+            items:
+              $ref: '#/definitions/SimpleInvestorsList'
+      portfolio_aggregates:
+        type: object
+        properties:
+          stages:
+            type: array
+            items:
+              $ref: '#/definitions/Stages'
+          locations:
+            type: array
+            items:
+              $ref: '#/definitions/Location'
+          business_models:
+            type: array
+            items:
+              $ref: '#/definitions/BusinessModel'
+          industries:
+            type: array
+            items:
+              $ref: '#/definitions/Industry' 
+      deal_aggregates:
+        type: object
+        properties:
+          series:
+            type: array
+            items:
+              $ref: '#/definitions/Series'
+          quarterly:
+            type: array
+            items:
+              $ref: '#/definitions/Quarterly'
+      top_industries:
+        type: array
+        items:
+          $ref: '#/definitions/TopIndustry'
+      most_recent_filings:
+        type: array
+        items:
+          $ref: '#/definitions/MostRecentFillings'
+              
+  SimpleInvestorsList:
+    required:
+    - mm_slug
+    discriminator: mm_slug
+    properties:
+      mm_slug:
+        type: string
+        example: Greycroft
+      display_name:
+        type: string
+        example: Greycroft Partners
+  Stages:
+    properties:
+      name:
+        type: string
+        example: a
+      count:
+        type: string
+        example: 42
+  Location:
+    properties:
+      name:
+        type: string
+        example: new york
+      count:
+        type: string
+        example: 44
+  BusinessModel:  
+     properties:
+      name:
+        type: string
+        example: B2C
+      count:
+        type: string
+        example: 102
+  Industry:
+    properties:
+      name:
+        type: string
+        example: E-Commerce
+      count:
+        type: string
+        example: 37
+  Series:
+    properties:
+      name:
+        type: string
+        example: a
+      count:
+        type: string
+        example: 86 
+  Quarterly:
+    properties:
+      '2015-07-01':
+        type: object
+        properties:
+          location:
+            type: array
+            items:
+              $ref: '#/definitions/QuarterlyLocation'
+          industries:
+            type: array
+            items:
+               $ref: '#/definitions/QuarterlySubIndustry'
+          stages:
+            type: array
+            items:
+              $ref: '#/definitions/QuarterlySubStage'
+          business_models:
+            items:
+              $ref: '#/definitions/QuarterlySubBusinessModel'
+      '2015-04-01':
+        type: object
+        properties:
+          location:
+            type: array
+            items:
+              $ref: '#/definitions/QuarterlyLocation'
+          industries:
+            type: array
+            items:
+               $ref: '#/definitions/QuarterlySubIndustry'
+          stages:
+            type: array
+            items:
+              $ref: '#/definitions/QuarterlySubStage'
+          business_models:
+            items:
+              $ref: '#/definitions/QuarterlySubBusinessModel'      
+  QuarterlyLocation:
+    properties:
+      name:
+        type: string
+        example: minneapolis
+      count:
+        type: string
+        example: 1
+  QuarterlySubIndustry:
+    properties:
+      name:
+        type: string
+        example: Hospitality
+      count:
+        type: string
+        example: 2
+  QuarterlySubStage:
+    properties:
+      name:
+        type: string
+        example: a
+      count:
+        type: string
+        example: 2   
+  QuarterlySubBusinessModel:
+    properties:
+      name:
+        type: string
+        example: a
+      count:
+        type: string
+        example: B2C        
+  TopIndustry:
+    properties:
+      industry_name:
+        type: string
+        example: e-commerce
+      investments:
+        type: integer
+        format: int64
+        example: 55
+  MostRecentFillings:
+    properties:
+      entity_name:
+        type: string
+        example: Greycroft Growth, L.P.
+      total_offering:
+        type: string
+        example: 200000000  
+      total_sold:
+        type: string
+        example: 200000000
+      filing_date:
+        type: string
+        example: '2014-06-19'
+      form:
+        type: string
+        example: D  
+  CompanyStory:
+    required:
+    - id
+    - title
+    - url
+    - published_at
+    - source_title
+    properties:
+      id:
+        type: integer
+        example: 1426837
+      title:
+        type: string
+        example: 'E-commerce roundup: Amazon India, Bata, FoodPanda & Snapdeal'
+      url:
+        type: string
+        format: url
+        example: http://feedproxy.google.com/~r/medianama/~3/pScV966Eya8/
+      published_at:
+        type: string
+        example: 2014-12-18 01:16:25 UTC
+      source_title:
+        type: string
+        example: MediaNama  
+  SimilarCompany:
+    type: object
+    required:
+    - company_name
+    - description
+    - description_plain_text
+    - domain
+    - id
+    - probability
+    - stage
+    - total_funding
+    properties:
+      company_name:
+        type: string
+        example: Flipkart
+      description:
+        type: string
+        example: Flipkart is an online shopping destination for electronics, books, music and movies.
+      description_plain_text:
+        type: string
+        example: Flipkart is an online shopping destination for electronics, books, music and movies.
+      domain:
+        type: string
+        example: flipkart.com
+      id:
+        type: integer
+        format: int64
+        example: 39279
+      probability:
+        type: string
+        example: 1.0
+      stage:
+        type: string
+        example: h
+      total_funding:
+        type: integer
+        format: int64
+        example: 3051140000    
+  PeopleItem:
+    type: object
+    required:
+    - name
+    - title
+    - path
+    properties:
+      name:
+        type: string
+        example: Ari Roisman
+      title:
+        type: string
+        example: Co-Founder / CEO
+      path:
+        type: string
+        example: https://il.linkedin.com/in/aroisman
+  ContactItem:
+    type: object
+    required:
+    - company_id
+    - name
+    - email
+    properties:
+      company_id:
+        type: integer
+        example: 146589
+      name:
+        type: string
+        example: Danielle Morrill
+      email:
+        type: string
+        example: danielle@mattermark.com      
+ 
+parameters:
+  pageParam:
+    in: query
+    name: page
+    required: false
+    type: integer
+    minimum: 0
+    description: The page of items from the result set to return.
+  limitParam:
+    in: query
+    name: per_page
+    required: false
+    type: integer
+    minimum: 1
+    maximum: 50
+    default: 10
+    description: The numbers of items to return per page.    
+
+securityDefinitions:
+   APIKeyQueryParam:
+     type: apiKey
+     in: query
+     name: key
+     
+host: api.mattermark.com
+schemes:
+ - https
