@@ -534,7 +534,7 @@ paths:
       responses:
         200:
           description: An investor company object
-  /ratelimit/quota:
+  /ratelimit/usage:
     get:
       tags:
         - Utilities
