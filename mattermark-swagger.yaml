@@ -363,31 +363,6 @@ paths:
           description: A company personnel object
           schema:
             $ref: '#/definitions/PeopleItem'
-  /companies/{id}/contact:
-    get:
-      tags:
-        - Companies
-      summary: Retrieve employee contact information
-      operationId: get_personnel_contact
-      description: This endpoint allows you to retrieve contact information for a specific person at a company
-      produces:
-      - application/json
-      parameters:
-      - in: path
-        name: id
-        description: The ID of the company to retrieve personnel for
-        type: string    
-        required: true
-      - in: query
-        name: full_name
-        description: The full name of the individual to find contact information for
-        type: string
-        required: true
-      responses:
-        200:
-          description: A contact object
-          schema:
-            $ref: '#/definitions/ContactItem'          
   /fundings:
     get:
       tags:
@@ -1520,23 +1495,7 @@ definitions:
         example: Co-Founder / CEO
       path:
         type: string
-        example: https://il.linkedin.com/in/aroisman
-  ContactItem:
-    type: object
-    required:
-    - company_id
-    - name
-    - email
-    properties:
-      company_id:
-        type: integer
-        example: 146589
-      name:
-        type: string
-        example: Danielle Morrill
-      email:
-        type: string
-        example: danielle@mattermark.com      
+        example: https://il.linkedin.com/in/aroisman   
  
 parameters:
   pageParam:
